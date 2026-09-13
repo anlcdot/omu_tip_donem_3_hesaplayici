@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tıp Fakültesi Blok ve Final Hesaplayıcı</title>
+<style>
+    body { 
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        background-color: #e9ecef; 
+        padding: 20px; 
+        color: #343a40;
+        margin: 0;
+    }
+    .container { 
+        max-width: 650px; 
+        margin: 0 auto; 
+        background: #fff; 
+        padding: 25px 35px; 
+        border-radius: 10px; 
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+    }
+    h2 { 
+        text-align: center; 
+        border-bottom: 2px solid #343a40; 
+        padding-bottom: 10px; 
+        margin-bottom: 25px;
+        font-size: 22px;
+    }
+    .row { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 12px; 
+        padding-bottom: 12px; 
+        border-bottom: 1px solid #dee2e6; 
+    }
+    .row.extra {
+        background-color: #f8f9fa;
+        padding: 15px 10px;
+        border-radius: 6px;
+        border: 1px solid #e2e6ea;
+        margin-top: 20px;
+    }
+    .row label { 
+        font-size: 15px; 
+        flex: 1; 
+        font-weight: 600;
+    }
+    .row .badge { 
+        font-size: 12px; 
+        color: #495057; 
+        margin-right: 15px; 
+        background: #e2e3e5;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+        text-align: center;
+        min-width: 110px;
+    }
+    .row.extra .badge {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    .row input { 
+        width: 70px; 
+        padding: 8px; 
+        font-size: 15px; 
+        border: 1px solid #ced4da; 
+        border-radius: 5px; 
+        text-align: center;
+    }
+    button { 
+        width: 100%; 
+        padding: 14px; 
+        background-color: #212529; 
+        color: white; 
+        border: none; 
+        font-size: 16px; 
+        font-weight: bold;
+        border-radius: 5px; 
+        cursor: pointer; 
+        margin-top: 20px; 
+        transition: 0.2s;
+    }
+    button:hover { 
+        background-color: #343a40; 
+    }
+    #sonuc { 
+        margin-top: 25px; 
+        padding: 20px; 
+        border-radius: 6px; 
+        display: none; 
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+    }
+    .sonuc-baslik {
+        font-size: 20px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 15px;
+    }
+    .sonuc-mavi { color: #007bff; }
+    .sonuc-yesil { color: #28a745; }
+    .sonuc-kirmizi { color: #ebb41c; }
+    
+    .ortalamalar {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 15px;
+        font-weight: bold;
+        color: #495057;
+    }
+    .final-hesap {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px dashed #adb5bd;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+    .final-deger {
+        font-weight: bold;
+        font-size: 18px;
+        color: #ebb41c;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Dönem Sonu Başarı Hesaplayıcı</h2>
+    
+    <div id="dersler-listesi"></div>
+    
+    <div class="row extra">
+        <label>PDÖ (Probleme Dayalı Öğrenim)</label>
+        <span class="badge">Final İçin %10 Etki</span>
+        <input type="number" id="not_pdo" min="0" max="100" placeholder="Not">
+    </div>
+    <div class="row extra" style="margin-top: 10px;">
+        <label>MDU (Mesleki Düşünce ve UYG.)</label>
+        <span class="badge">Final İçin %10 Etki</span>
+        <input type="number" id="not_mdu" min="0" max="100" placeholder="Not">
+    </div>
+
+    <button onclick="tamHesapla()">Durumu Hesapla</button>
+    <div id="sonuc"></div>
+</div>
+
+<script>
+    const dersler = [
+        { ad: 'Tıpta Profesyonellik', akts: 2, kredi: 1 },
+        { ad: 'Gebelik ve Doğum', akts: 5, kredi: 3 },
+        { ad: 'Tümörler', akts: 5, kredi: 3 },
+        { ad: 'Solunum ve Dolaşım', akts: 6, kredi: 4 },
+        { ad: 'Travma', akts: 5, kredi: 3 },
+        { ad: 'Enfeksiyon', akts: 5, kredi: 5 },
+        { ad: 'Endokrin Sistem', akts: 5, kredi: 5 },
+        { ad: 'Sindirim Sistemi', akts: 5, kredi: 3 },
+        { ad: 'Yaşlanma', akts: 5, kredi: 3 },
+        { ad: 'Nöropsikiyatriye Giriş', akts: 5, kredi: 3 },
+        { ad: 'Seçmeli', akts: 4, kredi: 3 }
+    ];
+
+    const container = document.getElementById('dersler-listesi');
+
+    // Formu oluştur
+    dersler.forEach((ders, index) => {
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `
+            <label>${ders.ad}</label>
+            <span class="badge">${ders.akts} AKTS | ${ders.kredi} Kredi</span>
+            <input type="number" id="not_${index}" min="0" max="100" placeholder="Not">
+        `;
+        container.appendChild(row);
+    });
+
+    function tamHesapla() {
+        let toplamPuanAKTS = 0;
+        let toplamAKTS = 0;
+        
+        let toplamPuanKredi = 0;
+        let toplamKredi = 0;
+        
+        let eksikVarMi = false;
+
+        // Blok ortalamaları hesabı
+        dersler.forEach((ders, index) => {
+            const notInput = document.getElementById('not_' + index).value;
+            if (notInput === '') {
+                eksikVarMi = true;
+            } else {
+                let notDegeri = parseFloat(notInput);
+                toplamPuanAKTS += notDegeri * ders.akts;
+                toplamAKTS += ders.akts;
+                
+                toplamPuanKredi += notDegeri * ders.kredi;
+                toplamKredi += ders.kredi;
+            }
+        });
+
+        const pdoInput = document.getElementById('not_pdo').value;
+        const mduInput = document.getElementById('not_mdu').value;
+
+        if (eksikVarMi || pdoInput === '' || mduInput === '') {
+            alert("Sistem eksik veriyle çalışmaz. Gerçekçi bir sonuç için PDÖ ve MDU dahil tüm notlarınızı girin.");
+            return;
+        }
+
+        const pdo = parseFloat(pdoInput);
+        const mdu = parseFloat(mduInput);
+        
+        const ortAKTS = toplamPuanAKTS / toplamAKTS;
+        const ortKredi = toplamPuanKredi / toplamKredi;
+        
+        const gectiAKTS = ortAKTS >= 79.5;
+        const gectiKredi = ortKredi >= 79.5;
+
+        const sonucDiv = document.getElementById('sonuc');
+        sonucDiv.style.display = 'block';
+        
+        let htmlIcerik = `<div class="ortalamalar">
+            <span>AKTS Ortalaması: ${ortAKTS.toFixed(2)}</span>
+            <span>Kredi Ortalaması: ${ortKredi.toFixed(2)}</span>
+        </div>`;
+
+        // Ana karar mekanizması
+        if (gectiAKTS && gectiKredi) {
+            htmlIcerik = `<div class="sonuc-baslik sonuc-mavi">Tebrikler! Sınıfı finalsiz geçtiniz.</div>` + htmlIcerik;
+        } else if (gectiAKTS || gectiKredi) {
+            htmlIcerik = `<div class="sonuc-baslik sonuc-yesil">Tebrikler! Sınıfı yüksek ihtimalle finalsiz geçtiniz.</div>` + htmlIcerik;
+        } else {
+            htmlIcerik = `<div class="sonuc-baslik sonuc-kirmizi">Finallere kalıyorsunuz.</div>` + htmlIcerik;
+        }
+
+        // Final Notu İhtiyacı (Sınırı Geçemeyen Sistemler İçin)
+        // Formül: (Blok*50 + PDÖ*10 + MDU*10 + Final*25) / 95 = 69.5
+        // Final = (6602.5 - (Blok*50 + PDÖ*10 + MDU*10)) / 25
+        const finalHesapla = (blokOrt) => {
+            let hesaplananNot = (6602.5 - (blokOrt * 50 + pdo * 10 + mdu * 10)) / 25;
+            // 49.5 Final Barajı Kuralı
+            return hesaplananNot < 49.5 ? 49.5 : hesaplananNot;
+        };
+
+        if (!gectiAKTS || !gectiKredi) {
+            htmlIcerik += `<div class="final-hesap">`;
+            
+            if (!gectiAKTS) {
+                let gerekenAKTS = finalHesapla(ortAKTS);
+                htmlIcerik += `<div><strong>AKTS Sistemine Göre</strong> sınıfı geçmek için finalden almanız gereken not: <span class="final-deger">${gerekenAKTS.toFixed(2)}</span></div><br>`;
+            }
+            
+            if (!gectiKredi) {
+                let gerekenKredi = finalHesapla(ortKredi);
+                htmlIcerik += `<div><strong>Kredi Sistemine Göre</strong> sınıfı geçmek için finalden almanız gereken not: <span class="final-deger">${gerekenKredi.toFixed(2)}</span></div>`;
+            }
+            
+            htmlIcerik += `</div>`;
+        }
+
+        sonucDiv.innerHTML = htmlIcerik;
+    }
+</script>
+
+</body>
+</html>
